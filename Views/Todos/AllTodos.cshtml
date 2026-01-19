@@ -1,0 +1,590 @@
+@using todo_web_app_dotnet.Models
+@model List<todo_web_app_dotnet.Models.Todo>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo Groups</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: #2f3e46ff;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.85;
+            font-weight: 500;
+        }
+
+        .todo-groups {
+            display: grid;
+            gap: 30px;
+        }
+
+        .todo-group {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .group-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
+            color: #cad2c5ff;
+        }
+
+        .group-title {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .group-description {
+            opacity: 0.95;
+            font-size: 0.95em;
+            color: #cad2c5ff;
+        }
+
+        .group-stats {
+            margin-top: 10px;
+            font-size: 0.9em;
+            opacity: 0.9;
+            color: #84a98cff;
+        }
+
+        .tasks-container {
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 50%);
+            border-radius: 12px;
+            border-left: 4px solid #52796fff;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: linear-gradient(135deg, #84a98cff 0%, #52796fff 100%);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(52, 79, 82, 0.3);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            background: linear-gradient(135deg, #84a98cff 0%, #52796fff 100%);
+            border-left-color: #354f52ff;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #354f52ff;
+        }
+
+        .task-item.completed .task-checkbox {
+            accent-color: #2f3e46ff;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #2f3e46ff;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: #52796fff;
+        }
+
+        .task-description {
+            color: #354f52ff;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .task-date {
+            color: #52796fff;
+            font-size: 0.85em;
+        }
+
+        .task-status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: auto;
+            margin-top: 2px;
+        }
+
+        .task-status-badge.completed {
+            background: #52796fff;
+            color: #cad2c5ff;
+        }
+
+        .task-status-badge.pending {
+            background: #84a98cff;
+            color: #2f3e46ff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .back-link a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #52796fff, #354f52ff);
+            color: #cad2c5ff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(47, 62, 70, 0.2);
+        }
+
+        .back-link a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 79, 82, 0.3);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B, #FFA500, #FFD700, #4CAF50, #00BCD4);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 0px;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+            color: #F08080ff;
+        }
+
+        .delete-btn:hover {
+            background: none;
+            opacity: 1;
+            transform: scale(1.15);
+            color: #F08080ff;
+        }
+
+        .group-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(202, 210, 197, 0.3);
+        }
+
+        .delete-group-btn {
+            padding: 8px 12px;
+            background: none;
+            color: #F08080ff;
+            border: none;
+            border-radius: 0px;
+            cursor: pointer;
+            font-size: 1.3em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0.8;
+        }
+
+        .delete-group-btn:hover {
+            background: none;
+            color: #F08080ff;
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        .add-todo-section {
+            background: linear-gradient(135deg, #52796fff 0%, #354f52ff 100%);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(47, 62, 70, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .add-todo-section h2 {
+            color: #cad2c5ff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2f3e46ff;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #84a98cff;
+            border-radius: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            background: rgba(242, 245, 240, 0.9);
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #354f52ff;
+            box-shadow: 0 0 5px rgba(53, 79, 82, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 150px;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .submit-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
+            color: #cad2c5ff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(47, 62, 70, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 79, 82, 0.4);
+        }
+
+        .add-task-section {
+            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 100%);
+            padding: 15px;
+            border-radius: 0px;
+            margin-bottom: 15px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(52, 79, 82, 0.1);
+        }
+
+        .add-task-section h3 {
+            color: #2f3e46ff;
+            margin-bottom: 15px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .add-task-form {
+            display: grid;
+            grid-template-columns: 1fr 100px;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .add-task-form input,
+        .add-task-form textarea {
+            padding: 10px;
+            border: 1px solid #cad2c5ff;
+            border-radius: 5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9em;
+            background: #f5f5f5;
+        }
+
+        .add-task-form textarea {
+            grid-column: 1 / -1;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .add-task-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #52796fff 0%, #354f52ff 100%);
+            color: #cad2c5ff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Task Master</h1>
+            <p>Track, organize, and conquer your goals with style</p>
+        </div>
+
+        <!-- Add New Todo Section -->
+        <div class="add-todo-section">
+            <h2>➕ Create New Task Group</h2>
+            <form method="post" action="@Url.Action("AddTodo", "Todos")">
+                <div class="form-row">
+                    <div>
+                        <div class="form-group">
+                            <label for="todoTitle">Group Title <span style="color: #d32f2f;">*</span></label>
+                            <input type="text" id="todoTitle" name="title" placeholder="e.g., Project Setup, Backend Development..." required />
+                        </div>
+                        <div class="form-group">
+                            <label for="todoDescription">Description</label>
+                            <textarea id="todoDescription" name="description" placeholder="Describe what this group of tasks is about (optional)"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">🚀 Create Group</button>
+            </form>
+        </div>
+
+        @if (Model != null && Model.Count > 0)
+        {
+            <div class="todo-groups">
+                @foreach (var todo in Model)
+                {
+                    var totalTasks = todo.Tasks?.Length ?? 0;
+                    var completedTasks = todo.Tasks?.Count(t => t.IsCompleted) ?? 0;
+                    var progressPercentage = totalTasks > 0 ? (completedTasks * 100) / totalTasks : 0;
+
+                    var groupEmojis = new Dictionary<int, string> 
+                    { 
+                        { 1, "🚀" },
+                        { 2, "⚙️" },
+                        { 3, "🎨" },
+                        { 4, "📊" },
+                        { 5, "🔧" }
+                    };
+                    var emoji = groupEmojis.ContainsKey(todo.Id) ? groupEmojis[todo.Id] : "📝";
+
+                    <div class="todo-group">
+                        <div class="group-header">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <div class="group-title">@emoji @todo.Title</div>
+                                    <div class="group-description">@todo.Description</div>
+                                    <div class="group-stats">✨ @completedTasks / @totalTasks tasks completed</div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: @progressPercentage%"></div>
+                                    </div>
+                                </div>
+                                <form method="post" action="@Url.Action("DeleteTodo", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this entire group and all its tasks?');">
+                                    <input type="hidden" name="id" value="@todo?.Id" />
+                                    <button type="submit" class="delete-group-btn" title="Delete Group">🗑️</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Add Task Form - Above Tasks -->
+                        <div class="add-task-section">
+                            <h3>✨ Add New Task</h3>
+                            <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form">
+                                <input type="hidden" name="todoId" value="@todo.Id" />
+                                <input type="text" name="title" placeholder="💡 Task title..." required />
+                                <button type="submit" class="add-task-btn">➕ Add</button>
+                                <textarea name="description" placeholder="📝 Task description (optional)..." style="grid-column: 1 / -1;"></textarea>
+                            </form>
+                        </div>
+
+                        @if (totalTasks > 0)
+                        {
+                            <div class="tasks-container">
+                                <!-- Pending Tasks -->
+                                @foreach (var task in todo.Tasks.Where(t => !t.IsCompleted))
+                                {
+                                    <div class="task-item @(task.IsCompleted ? "completed" : "")">
+                                        <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
+                                            <input type="hidden" name="id" value="@todo.Id" />
+                                            <input type="hidden" name="taskId" value="@task.Id" />
+                                            <input type="checkbox" class="task-checkbox" @(task.IsCompleted ? "checked" : "") 
+                                                   onchange="this.form.submit();" />
+                                        </form>
+                                        <div class="task-content">
+                                            <div class="task-title">@(task.IsCompleted ? "✓" : "○") @task.Title</div>
+                                            @if (!string.IsNullOrEmpty(task.Description))
+                                            {
+                                                <div class="task-description">@task.Description</div>
+                                            }
+                                            <div class="task-date">📅 @task.CreatedDate.ToString("MMM dd, yyyy")</div>
+                                        </div>
+                                        <div class="task-status-badge @(task.IsCompleted ? "completed" : "pending")">
+                                            @(task.IsCompleted ? "✓ Done" : "⏳ Pending")
+                                        </div>
+                                        <div class="task-actions">
+                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                                <input type="hidden" name="id" value="@todo.Id" />
+                                                <input type="hidden" name="taskId" value="@task.Id" />
+                                                <button type="submit" class="delete-btn" title="Delete task">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <!-- Completed Tasks -->
+                                @foreach (var task in todo.Tasks.Where(t => t.IsCompleted))
+                                {
+                                    <div class="task-item @(task.IsCompleted ? "completed" : "")">
+                                        <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
+                                            <input type="hidden" name="id" value="@todo.Id" />
+                                            <input type="hidden" name="taskId" value="@task.Id" />
+                                            <input type="checkbox" class="task-checkbox" @(task.IsCompleted ? "checked" : "") 
+                                                   onchange="this.form.submit();" />
+                                        </form>
+                                        <div class="task-content">
+                                            <div class="task-title">@(task.IsCompleted ? "✓" : "○") @task.Title</div>
+                                            @if (!string.IsNullOrEmpty(task.Description))
+                                            {
+                                                <div class="task-description">@task.Description</div>
+                                            }
+                                            <div class="task-date">📅 @task.CreatedDate.ToString("MMM dd, yyyy")</div>
+                                        </div>
+                                        <div class="task-status-badge @(task.IsCompleted ? "completed" : "pending")">
+                                            @(task.IsCompleted ? "✓ Done" : "⏳ Pending")
+                                        </div>
+                                        <div class="task-actions">
+                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                                <input type="hidden" name="id" value="@todo.Id" />
+                                                <input type="hidden" name="taskId" value="@task.Id" />
+                                                <button type="submit" class="delete-btn" title="Delete task">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="tasks-container">
+                                <div class="empty-state">
+                                    <p>🌟 No tasks yet! Start by adding one above 🌟</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 80px 20px; color: white;">
+                <h2 style="font-size: 2em; margin-bottom: 20px;">📭 No Tasks Yet</h2>
+                <p style="font-size: 1.1em; opacity: 0.9;">Start by creating your first task group!</p>
+            </div>
+        }
+
+        <div class="back-link">
+            <a href="@Url.Action("Index", "Todos")">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>
