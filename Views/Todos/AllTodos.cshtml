@@ -21,6 +21,32 @@
             padding: 20px;
         }
 
+        .back-home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #52796fff;
+            color: #cad2c5ff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .back-home-btn:hover {
+            background: #354f52ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
+        }
+
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -69,7 +95,78 @@
                 transform: translateY(0);
             }
         }
+        /* Delete confirmation popup */
+        .delete-confirm-popup {
+            position: fixed;
+            background: white;
+            border: 2px solid #52796fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.2s ease-out;
+        }
 
+        .delete-confirm-content {
+            padding: 12px 16px;
+            min-width: 160px;
+        }
+
+        .delete-confirm-content p {
+            margin: 0 0 12px 0;
+            color: #2f3e46ff;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .delete-confirm-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .confirm-yes, .confirm-no {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-yes {
+            background: #F08080ff;
+            color: white;
+        }
+
+        .confirm-yes:hover {
+            background: #e06666;
+            transform: translateY(-1px);
+        }
+
+        .confirm-no {
+            background: #cad2c5ff;
+            color: #2f3e46ff;
+        }
+
+        .confirm-no:hover {
+            background: #b5bdb4;
+            transform: translateY(-1px);
+        }
+
+        /* Delete success notification */
+        .delete-notification {
+            position: fixed;
+            background: #52796fff;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        }
         .group-header {
             padding: 20px;
             background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
@@ -179,8 +276,8 @@
         }
 
         .task-status-badge.pending {
-            background: #84a98cff;
-            color: #2f3e46ff;
+            background: #52796fff;
+            color: #cad2c5ff;
         }
 
         .empty-state {
@@ -420,6 +517,7 @@
     </style>
 </head>
 <body>
+    <a href="/" class="back-home-btn">← Home</a>
     <div class="container">
         <div class="header">
             <h1>✨ Task Master</h1>
@@ -486,7 +584,7 @@
                         <!-- Add Task Form - Above Tasks -->
                         <div class="add-task-section">
                             <h3>✨ Add New Task</h3>
-                            <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form">
+                            <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form" data-todo-id="@todo.Id">
                                 <input type="hidden" name="todoId" value="@todo.Id" />
                                 <input type="text" name="title" placeholder="💡 Task title..." required />
                                 <button type="submit" class="add-task-btn">➕ Add</button>
@@ -504,11 +602,10 @@
                                         <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
                                             <input type="hidden" name="id" value="@todo.Id" />
                                             <input type="hidden" name="taskId" value="@task.Id" />
-                                            <input type="checkbox" class="task-checkbox" @(task.IsCompleted ? "checked" : "") 
-                                                   onchange="this.form.submit();" />
+                                            <input type="checkbox" class="task-checkbox toggle-checkbox" @(task.IsCompleted ? "checked" : "") />
                                         </form>
                                         <div class="task-content">
-                                            <div class="task-title">@(task.IsCompleted ? "✓" : "○") @task.Title</div>
+                                            <div class="task-title">@task.Title</div>
                                             @if (!string.IsNullOrEmpty(task.Description))
                                             {
                                                 <div class="task-description">@task.Description</div>
@@ -519,10 +616,10 @@
                                             @(task.IsCompleted ? "✓ Done" : "⏳ Pending")
                                         </div>
                                         <div class="task-actions">
-                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;">
                                                 <input type="hidden" name="id" value="@todo.Id" />
                                                 <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="delete-btn" title="Delete task">🗑️</button>
+                                                <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
                                             </form>
                                         </div>
                                     </div>
@@ -535,11 +632,10 @@
                                         <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
                                             <input type="hidden" name="id" value="@todo.Id" />
                                             <input type="hidden" name="taskId" value="@task.Id" />
-                                            <input type="checkbox" class="task-checkbox" @(task.IsCompleted ? "checked" : "") 
-                                                   onchange="this.form.submit();" />
+                                            <input type="checkbox" class="task-checkbox toggle-checkbox" @(task.IsCompleted ? "checked" : "") />
                                         </form>
                                         <div class="task-content">
-                                            <div class="task-title">@(task.IsCompleted ? "✓" : "○") @task.Title</div>
+                                            <div class="task-title">@task.Title</div>
                                             @if (!string.IsNullOrEmpty(task.Description))
                                             {
                                                 <div class="task-description">@task.Description</div>
@@ -550,10 +646,10 @@
                                             @(task.IsCompleted ? "✓ Done" : "⏳ Pending")
                                         </div>
                                         <div class="task-actions">
-                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                            <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;">
                                                 <input type="hidden" name="id" value="@todo.Id" />
                                                 <input type="hidden" name="taskId" value="@task.Id" />
-                                                <button type="submit" class="delete-btn" title="Delete task">🗑️</button>
+                                                <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
                                             </form>
                                         </div>
                                     </div>
@@ -586,5 +682,256 @@
             </a>
         </div>
     </div>
+
+    <script>
+        // Handle add task with AJAX
+        document.querySelectorAll('.add-task-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const todoId = this.dataset.todoId;
+                const title = this.querySelector('input[name="title"]').value;
+                const description = this.querySelector('textarea[name="description"]').value;
+                
+                if (!title.trim()) return;
+                
+                try {
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        // Clear form inputs
+                        this.querySelector('input[name="title"]').value = '';
+                        this.querySelector('textarea[name="description"]').value = '';
+                        
+                        // Create new task HTML and insert it
+                        const tasksContainer = this.closest('.todo-group').querySelector('.tasks-container');
+                        const newTaskHTML = `
+                            <div class="task-item" style="animation: slideIn 0.3s ease-out;">
+                                <form method="post" action="/Todos/ToggleStatus" style="display: inline;">
+                                    <input type="hidden" name="id" value="${todoId}" />
+                                    <input type="hidden" name="taskId" value="999" />
+                                    <input type="checkbox" class="task-checkbox toggle-checkbox" />
+                                </form>
+                                <div class="task-content">
+                                    <div class="task-title">${title}</div>
+                                    ${description ? `<div class="task-description">${description}</div>` : ''}
+                                    <div class="task-date">📅 ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                                </div>
+                                <div class="task-status-badge pending">
+                                    ⏳ Pending
+                                </div>
+                                <div class="task-actions">
+                                    <form method="post" action="/Todos/DeleteTask" style="display: inline;">
+                                        <input type="hidden" name="id" value="${todoId}" />
+                                        <input type="hidden" name="taskId" value="999" />
+                                        <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
+                                    </form>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Insert at the beginning of tasks container
+                        tasksContainer.insertAdjacentHTML('afterbegin', newTaskHTML);
+                        
+                        // Re-attach event listeners to new elements
+                        attachTaskEventListeners();
+                    }
+                } catch (error) {
+                    console.error('Error adding task:', error);
+                    alert('Error adding task. Please try again.');
+                }
+            });
+        });
+
+        // Function to attach event listeners to task elements
+        function attachTaskEventListeners() {
+            // Attach toggle listeners
+            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+                checkbox.removeEventListener('change', toggleTaskHandler);
+                checkbox.addEventListener('change', toggleTaskHandler);
+            });
+            
+            // Attach delete listeners
+            document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                btn.removeEventListener('click', deleteTaskHandler);
+                btn.addEventListener('click', deleteTaskHandler);
+            });
+        }
+
+        // Toggle task handler
+        async function toggleTaskHandler(e) {
+            const checkbox = this;
+            const currentState = checkbox.checked;
+            
+            const form = checkbox.closest('form');
+            const todoId = form.querySelector('input[name="id"]').value;
+            const taskId = form.querySelector('input[name="taskId"]').value;
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        id: todoId,
+                        taskId: taskId
+                    })
+                });
+                
+                if (response.ok) {
+                    const taskItem = checkbox.closest('.task-item');
+                    const wasCompleted = taskItem.classList.contains('completed');
+                    const isNowCompleted = !wasCompleted;
+                    
+                    taskItem.classList.toggle('completed');
+                    
+                    // Update status badge with proper class management
+                    const badge = taskItem.querySelector('.task-status-badge');
+                    if (badge) {
+                        if (isNowCompleted) {
+                            badge.classList.remove('pending');
+                            badge.classList.add('completed');
+                            badge.textContent = '✓ Done';
+                        } else {
+                            badge.classList.remove('completed');
+                            badge.classList.add('pending');
+                            badge.textContent = '⏳ Pending';
+                        }
+                    }
+                } else {
+                    // Revert checkbox if request failed
+                    checkbox.checked = !currentState;
+                }
+            } catch (error) {
+                console.error('Error toggling task:', error);
+                // Revert checkbox if request failed
+                checkbox.checked = !currentState;
+            }
+        }
+
+        // Delete task handler
+        async function deleteTaskHandler(e) {
+            e.preventDefault();
+            
+            const btn = this;
+            const form = btn.closest('form');
+            const todoId = form.querySelector('input[name="id"]').value;
+            const taskId = form.querySelector('input[name="taskId"]').value;
+            
+            // Show confirmation popup at cursor
+            showDeleteConfirmation(e, async (confirmed) => {
+                if (!confirmed) return;
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            id: todoId,
+                            taskId: taskId
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const taskItem = btn.closest('.task-item');
+                        taskItem.style.animation = 'fadeOut 0.3s ease-out forwards';
+                        setTimeout(() => taskItem.remove(), 300);
+                        
+                        // Show success notification
+                        showNotification('Task deleted successfully', e.clientX, e.clientY);
+                    }
+                } catch (error) {
+                    console.error('Error deleting task:', error);
+                }
+            });
+        }
+
+        // Show delete confirmation popup
+        function showDeleteConfirmation(event, callback) {
+            const popup = document.createElement('div');
+            popup.className = 'delete-confirm-popup';
+            popup.innerHTML = `
+                <div class="delete-confirm-content">
+                    <p>Delete this task?</p>
+                    <div class="delete-confirm-buttons">
+                        <button class="confirm-yes">Yes</button>
+                        <button class="confirm-no">No</button>
+                    </div>
+                </div>
+            `;
+            
+            popup.style.left = (event.clientX + 10) + 'px';
+            popup.style.top = (event.clientY + 10) + 'px';
+            
+            document.body.appendChild(popup);
+            
+            const yesBtn = popup.querySelector('.confirm-yes');
+            const noBtn = popup.querySelector('.confirm-no');
+            
+            yesBtn.addEventListener('click', () => {
+                popup.remove();
+                callback(true);
+            });
+            
+            noBtn.addEventListener('click', () => {
+                popup.remove();
+                callback(false);
+            });
+            
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closePopup(e) {
+                    if (!popup.contains(e.target) && popup.parentNode) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopup);
+                        callback(false);
+                    }
+                });
+            }, 0);
+        }
+
+        // Show notification popup
+        function showNotification(message, x, y) {
+            const notification = document.createElement('div');
+            notification.className = 'delete-notification';
+            notification.textContent = message;
+            
+            notification.style.right = '20px';
+            notification.style.top = '20px';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // Initial attachment of event listeners
+        attachTaskEventListeners();
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-100%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
