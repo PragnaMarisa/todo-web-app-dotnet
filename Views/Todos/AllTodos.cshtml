@@ -1,5 +1,6 @@
 @using todo_web_app_dotnet.Models
-@model List<todo_web_app_dotnet.Models.Todo>
+@using todo_web_app_dotnet.ViewModels
+@model AllTodosViewModel
 
 <!DOCTYPE html>
 <html>
@@ -7,517 +8,22 @@
     <title>Todo Groups</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .back-home-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: #52796fff;
-            color: #cad2c5ff;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 0.95em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            z-index: 100;
-        }
-
-        .back-home-btn:hover {
-            background: #354f52ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: #2f3e46ff;
-            margin-bottom: 50px;
-        }
-
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-            font-weight: 700;
-            letter-spacing: -1px;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.85;
-            font-weight: 500;
-        }
-
-        .todo-groups {
-            display: grid;
-            gap: 30px;
-        }
-
-        .todo-group {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        /* Delete confirmation popup */
-        .delete-confirm-popup {
-            position: fixed;
-            background: white;
-            border: 2px solid #52796fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
-            z-index: 10000;
-            animation: slideIn 0.2s ease-out;
-        }
-
-        .delete-confirm-content {
-            padding: 12px 16px;
-            min-width: 160px;
-        }
-
-        .delete-confirm-content p {
-            margin: 0 0 12px 0;
-            color: #2f3e46ff;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .delete-confirm-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .confirm-yes, .confirm-no {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s ease;
-        }
-
-        .confirm-yes {
-            background: #F08080ff;
-            color: white;
-        }
-
-        .confirm-yes:hover {
-            background: #e06666;
-            transform: translateY(-1px);
-        }
-
-        .confirm-no {
-            background: #cad2c5ff;
-            color: #2f3e46ff;
-        }
-
-        .confirm-no:hover {
-            background: #b5bdb4;
-            transform: translateY(-1px);
-        }
-
-        /* Delete success notification */
-        .delete-notification {
-            position: fixed;
-            background: #52796fff;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(47, 62, 70, 0.3);
-            z-index: 10000;
-            animation: slideIn 0.3s ease-out;
-        }
-        .group-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
-            color: #cad2c5ff;
-        }
-
-        .group-title {
-            font-size: 1.5em;
-            margin-bottom: 5px;
-            font-weight: 700;
-        }
-
-        .group-description {
-            opacity: 0.95;
-            font-size: 0.95em;
-            color: #cad2c5ff;
-        }
-
-        .group-stats {
-            margin-top: 10px;
-            font-size: 0.9em;
-            opacity: 0.9;
-            color: #84a98cff;
-        }
-
-        .tasks-container {
-            padding: 20px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 15px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 50%);
-            border-radius: 12px;
-            border-left: 4px solid #52796fff;
-            transition: all 0.3s ease;
-        }
-
-        .task-item:hover {
-            background: linear-gradient(135deg, #84a98cff 0%, #52796fff 100%);
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(52, 79, 82, 0.3);
-        }
-
-        .task-item.completed {
-            opacity: 0.6;
-            background: linear-gradient(135deg, #84a98cff 0%, #52796fff 100%);
-            border-left-color: #354f52ff;
-        }
-
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            margin-right: 15px;
-            margin-top: 2px;
-            cursor: pointer;
-            accent-color: #354f52ff;
-        }
-
-        .task-item.completed .task-checkbox {
-            accent-color: #2f3e46ff;
-        }
-
-        .task-content {
-            flex: 1;
-        }
-
-        .task-title {
-            font-weight: 600;
-            color: #2f3e46ff;
-            margin-bottom: 5px;
-            font-size: 1em;
-        }
-
-        .task-item.completed .task-title {
-            text-decoration: line-through;
-            color: #52796fff;
-        }
-
-        .task-description {
-            color: #354f52ff;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-        }
-
-        .task-date {
-            color: #52796fff;
-            font-size: 0.85em;
-        }
-
-        .task-status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-left: auto;
-            margin-top: 2px;
-        }
-
-        .task-status-badge.completed {
-            background: #52796fff;
-            color: #cad2c5ff;
-        }
-
-        .task-status-badge.pending {
-            background: #52796fff;
-            color: #cad2c5ff;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state h2 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-            color: #666;
-        }
-
-        .back-link {
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .back-link a {
-            display: inline-block;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #52796fff, #354f52ff);
-            color: #cad2c5ff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(47, 62, 70, 0.2);
-        }
-
-        .back-link a:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 79, 82, 0.3);
-        }
-
-        .progress-bar {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            margin-top: 10px;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #FF6B6B, #FFA500, #FFD700, #4CAF50, #00BCD4);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 10px;
-            margin-left: 10px;
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 0px;
-            transition: all 0.3s ease;
-            opacity: 0.7;
-            color: #F08080ff;
-        }
-
-        .delete-btn:hover {
-            background: none;
-            opacity: 1;
-            transform: scale(1.15);
-            color: #F08080ff;
-        }
-
-        .group-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(202, 210, 197, 0.3);
-        }
-
-        .delete-group-btn {
-            padding: 8px 12px;
-            background: none;
-            color: #F08080ff;
-            border: none;
-            border-radius: 0px;
-            cursor: pointer;
-            font-size: 1.3em;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            opacity: 0.8;
-        }
-
-        .delete-group-btn:hover {
-            background: none;
-            color: #F08080ff;
-            opacity: 1;
-            transform: scale(1.15);
-        }
-
-        .add-todo-section {
-            background: linear-gradient(135deg, #52796fff 0%, #354f52ff 100%);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(47, 62, 70, 0.2);
-            margin-bottom: 40px;
-        }
-
-        .add-todo-section h2 {
-            color: #cad2c5ff;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2f3e46ff;
-            font-weight: 600;
-        }
-
-        .form-group input[type="text"],
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #84a98cff;
-            border-radius: 8px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
-            background: rgba(242, 245, 240, 0.9);
-        }
-
-        .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #354f52ff;
-            box-shadow: 0 0 5px rgba(53, 79, 82, 0.3);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 150px;
-            gap: 15px;
-            align-items: flex-end;
-        }
-
-        .submit-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
-            color: #cad2c5ff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(47, 62, 70, 0.3);
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 79, 82, 0.4);
-        }
-
-        .add-task-section {
-            background: linear-gradient(135deg, #cad2c5ff 0%, #84a98cff 100%);
-            padding: 15px;
-            border-radius: 0px;
-            margin-bottom: 15px;
-            border: none;
-            box-shadow: 0 2px 8px rgba(52, 79, 82, 0.1);
-        }
-
-        .add-task-section h3 {
-            color: #2f3e46ff;
-            margin-bottom: 15px;
-            font-size: 1em;
-            font-weight: 600;
-        }
-
-        .add-task-form {
-            display: grid;
-            grid-template-columns: 1fr 100px;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .add-task-form input,
-        .add-task-form textarea {
-            padding: 10px;
-            border: 1px solid #cad2c5ff;
-            border-radius: 5px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 0.9em;
-            background: #f5f5f5;
-        }
-
-        .add-task-form textarea {
-            grid-column: 1 / -1;
-            min-height: 60px;
-            resize: vertical;
-        }
-
-        .add-task-btn {
-            padding: 10px 15px;
-            background: linear-gradient(135deg, #52796fff 0%, #354f52ff 100%);
-            color: #cad2c5ff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .add-task-btn:hover {
-            background: linear-gradient(135deg, #354f52ff 0%, #2f3e46ff 100%);
-            transform: translateY(-1px);
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/alltodos.css" asp-append-version="true" />
 </head>
 <body>
-    <a href="/" class="back-home-btn">← Home</a>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="topbar-brand">
+                Task Master
+            </div>
+            <nav class="topbar-nav">
+                <a href="@Url.Action("Index", "Todos")"
+                   class="topbar-link topbar-link--primary">
+                    Home
+                </a>
+            </nav>
+        </div>
+    </header>
     <div class="container">
         <div class="header">
             <h1>✨ Task Master</h1>
@@ -540,18 +46,20 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="submit-btn">🚀 Create Group</button>
+                <button type="submit" class="submit-btn">Create Group</button>
             </form>
         </div>
 
-        @if (Model != null && Model.Count > 0)
+        @if (Model != null && Model.Groups.Count > 0)
         {
             <div class="todo-groups">
-                @foreach (var todo in Model)
+                @foreach (var todo in Model.Groups)
                 {
-                    var totalTasks = todo.Tasks?.Length ?? 0;
-                    var completedTasks = todo.Tasks?.Count(t => t.IsCompleted) ?? 0;
-                    var progressPercentage = totalTasks > 0 ? (completedTasks * 100) / totalTasks : 0;
+                    var todoId = todo.Id;
+                    var tasks = todo.Tasks ?? new List<Todotask>();
+                    var totalTasks = todo.TotalTasks;
+                    var completedTasks = todo.CompletedTasks;
+                    var progressPercentage = todo.ProgressPercentage;
 
                     var groupEmojis = new Dictionary<int, string> 
                     { 
@@ -561,22 +69,22 @@
                         { 4, "📊" },
                         { 5, "🔧" }
                     };
-                    var emoji = groupEmojis.ContainsKey(todo.Id) ? groupEmojis[todo.Id] : "📝";
+                    var emoji = groupEmojis.ContainsKey(todoId) ? groupEmojis[todoId] : "📝";
 
-                    <div class="todo-group">
+                    <div class="todo-group" data-todo-id="@todoId">
                         <div class="group-header">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div>
-                                    <div class="group-title">@emoji @todo.Title</div>
-                                    <div class="group-description">@todo.Description</div>
-                                    <div class="group-stats">✨ @completedTasks / @totalTasks tasks completed</div>
+                                    <div class="group-title">@emoji @(todo.Title ?? "")</div>
+                                    <div class="group-description">@(todo.Description ?? "")</div>
+                                    <div class="group-stats" data-role="group-stats">✨ @completedTasks / @totalTasks tasks completed</div>
                                     <div class="progress-bar">
-                                        <div class="progress-fill" style="width: @progressPercentage%"></div>
+                                        <div class="progress-fill" data-role="progress-fill" style="width: @progressPercentage%"></div>
                                     </div>
                                 </div>
-                                <form method="post" action="@Url.Action("DeleteTodo", "Todos")" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this entire group and all its tasks?');">
-                                    <input type="hidden" name="id" value="@todo?.Id" />
-                                    <button type="submit" class="delete-group-btn" title="Delete Group">🗑️</button>
+                                <form method="post" action="@Url.Action("DeleteTodo", "Todos")" style="display: inline;">
+                                    <input type="hidden" name="id" value="@todoId" />
+                                    <button type="button" class="delete-group-btn delete-group-btn-js" title="Delete Group">🗑️</button>
                                 </form>
                             </div>
                         </div>
@@ -584,8 +92,8 @@
                         <!-- Add Task Form - Above Tasks -->
                         <div class="add-task-section">
                             <h3>✨ Add New Task</h3>
-                            <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form" data-todo-id="@todo.Id">
-                                <input type="hidden" name="todoId" value="@todo.Id" />
+                            <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form" data-todo-id="@todoId">
+                                <input type="hidden" name="todoId" value="@todoId" />
                                 <input type="text" name="title" placeholder="💡 Task title..." required />
                                 <button type="submit" class="add-task-btn">➕ Add</button>
                                 <textarea name="description" placeholder="📝 Task description (optional)..." style="grid-column: 1 / -1;"></textarea>
@@ -596,11 +104,11 @@
                         {
                             <div class="tasks-container">
                                 <!-- Pending Tasks -->
-                                @foreach (var task in todo.Tasks.Where(t => !t.IsCompleted))
+                                @foreach (var task in tasks.Where(t => !t.IsCompleted))
                                 {
                                     <div class="task-item @(task.IsCompleted ? "completed" : "")">
                                         <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
-                                            <input type="hidden" name="id" value="@todo.Id" />
+                                            <input type="hidden" name="id" value="@todoId" />
                                             <input type="hidden" name="taskId" value="@task.Id" />
                                             <input type="checkbox" class="task-checkbox toggle-checkbox" @(task.IsCompleted ? "checked" : "") />
                                         </form>
@@ -617,7 +125,7 @@
                                         </div>
                                         <div class="task-actions">
                                             <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;">
-                                                <input type="hidden" name="id" value="@todo.Id" />
+                                                <input type="hidden" name="id" value="@todoId" />
                                                 <input type="hidden" name="taskId" value="@task.Id" />
                                                 <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
                                             </form>
@@ -626,11 +134,11 @@
                                 }
                                 
                                 <!-- Completed Tasks -->
-                                @foreach (var task in todo.Tasks.Where(t => t.IsCompleted))
+                                @foreach (var task in tasks.Where(t => t.IsCompleted))
                                 {
                                     <div class="task-item @(task.IsCompleted ? "completed" : "")">
                                         <form method="post" action="@Url.Action("ToggleStatus", "Todos")" style="display: inline;">
-                                            <input type="hidden" name="id" value="@todo.Id" />
+                                            <input type="hidden" name="id" value="@todoId" />
                                             <input type="hidden" name="taskId" value="@task.Id" />
                                             <input type="checkbox" class="task-checkbox toggle-checkbox" @(task.IsCompleted ? "checked" : "") />
                                         </form>
@@ -647,7 +155,7 @@
                                         </div>
                                         <div class="task-actions">
                                             <form method="post" action="@Url.Action("DeleteTask", "Todos")" style="display: inline;">
-                                                <input type="hidden" name="id" value="@todo.Id" />
+                                                <input type="hidden" name="id" value="@todoId" />
                                                 <input type="hidden" name="taskId" value="@task.Id" />
                                                 <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
                                             </form>
@@ -676,14 +184,54 @@
             </div>
         }
 
-        <div class="back-link">
-            <a href="@Url.Action("Index", "Todos")">
-                ← Back to Home
-            </a>
-        </div>
     </div>
 
     <script>
+        function updateGroupStatsAndProgress(todoGroupEl) {
+            if (!todoGroupEl) return;
+
+            const taskItems = todoGroupEl.querySelectorAll('.task-item');
+            const total = taskItems.length;
+            const completed = todoGroupEl.querySelectorAll('.task-item.completed').length;
+            const percent = total > 0 ? Math.round((completed * 100) / total) : 0;
+
+            const stats = todoGroupEl.querySelector('[data-role="group-stats"]');
+            if (stats) stats.textContent = `✨ ${completed} / ${total} tasks completed`;
+
+            const fill = todoGroupEl.querySelector('[data-role="progress-fill"]');
+            if (fill) fill.style.width = `${percent}%`;
+        }
+
+        function moveTaskBetweenSections(taskItem) {
+            const todoGroupEl = taskItem?.closest('.todo-group');
+            if (!todoGroupEl) return;
+
+            const tasksContainer = todoGroupEl.querySelector('.tasks-container');
+            if (!tasksContainer) return;
+
+            const isCompleted = taskItem.classList.contains('completed');
+            const firstCompleted = tasksContainer.querySelector('.task-item.completed');
+            const firstPending = tasksContainer.querySelector('.task-item:not(.completed)');
+
+            if (isCompleted) {
+                // Place at the top of completed section (after the pending list)
+                if (firstCompleted) {
+                    firstCompleted.insertAdjacentElement('beforebegin', taskItem);
+                } else {
+                    tasksContainer.appendChild(taskItem);
+                }
+            } else {
+                // Place at the end of pending section (before first completed)
+                if (firstCompleted) {
+                    firstCompleted.insertAdjacentElement('beforebegin', taskItem);
+                } else if (firstPending) {
+                    firstPending.insertAdjacentElement('beforebegin', taskItem);
+                } else {
+                    tasksContainer.appendChild(taskItem);
+                }
+            }
+        }
+
         // Handle add task with AJAX
         document.querySelectorAll('.add-task-form').forEach(form => {
             form.addEventListener('submit', async function(e) {
@@ -739,6 +287,9 @@
                         
                         // Re-attach event listeners to new elements
                         attachTaskEventListeners();
+
+                        // Keep stats/progress in sync
+                        updateGroupStatsAndProgress(this.closest('.todo-group'));
                     }
                 } catch (error) {
                     console.error('Error adding task:', error);
@@ -759,6 +310,12 @@
             document.querySelectorAll('.delete-task-btn').forEach(btn => {
                 btn.removeEventListener('click', deleteTaskHandler);
                 btn.addEventListener('click', deleteTaskHandler);
+            });
+
+            // Attach delete group listeners
+            document.querySelectorAll('.delete-group-btn-js').forEach(btn => {
+                btn.removeEventListener('click', deleteGroupHandler);
+                btn.addEventListener('click', deleteGroupHandler);
             });
         }
 
@@ -803,6 +360,9 @@
                             badge.textContent = '⏳ Pending';
                         }
                     }
+
+                    moveTaskBetweenSections(taskItem);
+                    updateGroupStatsAndProgress(taskItem.closest('.todo-group'));
                 } else {
                     // Revert checkbox if request failed
                     checkbox.checked = !currentState;
@@ -842,7 +402,11 @@
                     if (response.ok) {
                         const taskItem = btn.closest('.task-item');
                         taskItem.style.animation = 'fadeOut 0.3s ease-out forwards';
-                        setTimeout(() => taskItem.remove(), 300);
+                        setTimeout(() => {
+                            const group = taskItem.closest('.todo-group');
+                            taskItem.remove();
+                            updateGroupStatsAndProgress(group);
+                        }, 300);
                         
                         // Show success notification
                         showNotification('Task deleted successfully', e.clientX, e.clientY);
@@ -853,13 +417,68 @@
             });
         }
 
+        // Delete group (todo) handler - same UX as delete task
+        async function deleteGroupHandler(e) {
+            e.preventDefault();
+
+            const btn = this;
+            const form = btn.closest('form');
+            const todoId = form.querySelector('input[name="id"]').value;
+
+            showDeleteConfirmation(e, async (confirmed) => {
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            id: todoId
+                        })
+                    });
+
+                    if (response.ok) {
+                        const groupEl = btn.closest('.todo-group');
+                        groupEl.style.animation = 'fadeOut 0.3s ease-out forwards';
+
+                        setTimeout(() => {
+                            groupEl.remove();
+
+                            // If no groups left, show empty state (without full reload)
+                            if (document.querySelectorAll('.todo-group').length === 0) {
+                                const container = document.querySelector('.container');
+                                const existingGroups = container?.querySelector('.todo-groups');
+                                if (existingGroups) existingGroups.remove();
+
+                                const empty = document.createElement('div');
+                                empty.style.textAlign = 'center';
+                                empty.style.padding = '80px 20px';
+                                empty.style.color = 'white';
+                                empty.innerHTML = `
+                                    <h2 style="font-size: 2em; margin-bottom: 20px;">📭 No Tasks Yet</h2>
+                                    <p style="font-size: 1.1em; opacity: 0.9;">Start by creating your first task group!</p>
+                                `;
+                                container?.appendChild(empty);
+                            }
+                        }, 300);
+
+                        showNotification('Group deleted successfully', e.clientX, e.clientY);
+                    }
+                } catch (error) {
+                    console.error('Error deleting group:', error);
+                }
+            }, 'Delete this group?');
+        }
+
         // Show delete confirmation popup
-        function showDeleteConfirmation(event, callback) {
+        function showDeleteConfirmation(event, callback, message = 'Delete this task?') {
             const popup = document.createElement('div');
             popup.className = 'delete-confirm-popup';
             popup.innerHTML = `
                 <div class="delete-confirm-content">
-                    <p>Delete this task?</p>
+                    <p>${message}</p>
                     <div class="delete-confirm-buttons">
                         <button class="confirm-yes">Yes</button>
                         <button class="confirm-no">No</button>
@@ -917,6 +536,9 @@
         // Initial attachment of event listeners
         attachTaskEventListeners();
 
+        // Ensure stats/progress are correct on load (in case DOM differs from server render)
+        document.querySelectorAll('.todo-group').forEach(updateGroupStatsAndProgress);
+
         // Add fadeOut animation
         const style = document.createElement('style');
         style.textContent = `
@@ -933,5 +555,12 @@
         `;
         document.head.appendChild(style);
     </script>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div>© @DateTime.Now.Year Task Master</div>
+            <div class="site-footer-muted">Built with ASP.NET Core MVC</div>
+        </div>
+    </footer>
 </body>
 </html>

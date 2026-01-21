@@ -7,4 +7,8 @@
     <RootNamespace>todo_web_app_dotnet</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.1" />
+  </ItemGroup>
+
 </Project>

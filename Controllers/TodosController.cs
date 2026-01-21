@@ -8,11 +8,16 @@ namespace todo_web_app_dotnet.Controllers
     {
         private readonly ITodoService _todoService;
         private readonly ITodotaskService _todotaskService;
+        private readonly IAllTodosViewModelBuilder _viewModelBuilder;
 
-        public TodosController(ITodoService todoService, ITodotaskService todotaskService)
+        public TodosController(
+            ITodoService todoService,
+            ITodotaskService todotaskService,
+            IAllTodosViewModelBuilder viewModelBuilder)
         {
             _todoService = todoService;
             _todotaskService = todotaskService;
+            _viewModelBuilder = viewModelBuilder;
         }
 
         public IActionResult Index()
@@ -23,7 +28,8 @@ namespace todo_web_app_dotnet.Controllers
         public IActionResult AllTodos()
         {
             var todos = _todoService.GetAllTodos();
-            return View(todos);
+            var viewModel = _viewModelBuilder.Build(todos);
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -32,7 +38,7 @@ namespace todo_web_app_dotnet.Controllers
             if (string.IsNullOrEmpty(task.Title))
             {
                 ModelState.AddModelError("Title", "Title is required");
-                return View(task);
+                return RedirectToAction("AllTodos");
             }
 
             _todotaskService.AddTask(todoId, task);
@@ -44,7 +50,7 @@ namespace todo_web_app_dotnet.Controllers
             if (string.IsNullOrEmpty(todo.Title))
             {
                 ModelState.AddModelError("Title", "Title is required");
-                return View(todo);
+                return RedirectToAction("AllTodos");
             }
 
             _todoService.AddTodo(todo);
