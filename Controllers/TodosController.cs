@@ -40,7 +40,7 @@ namespace todo_web_app_dotnet.Controllers
                 ModelState.AddModelError("Title", "Title is required");
                 return RedirectToAction("AllTodos");
             }
-
+            task.CreatedDate = DateTime.UtcNow;
             _todotaskService.AddTask(todoId, task);
             return RedirectToAction("AllTodos");
         }

@@ -94,7 +94,7 @@
                             <h3>✨ Add New Task</h3>
                             <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form" data-todo-id="@todoId">
                                 <input type="hidden" name="todoId" value="@todoId" />
-                                <input type="text" name="title" placeholder="💡 Task title..." required />
+                                <input type="text" name="title" placeholder="💡 Task title..." required enterkeyhint="go" />
                                 <button type="submit" class="add-task-btn">➕ Add</button>
                                 <textarea name="description" placeholder="📝 Task description (optional)..." style="grid-column: 1 / -1;"></textarea>
                             </form>
@@ -178,9 +178,9 @@
         }
         else
         {
-            <div style="text-align: center; padding: 80px 20px; color: white;">
-                <h2 style="font-size: 2em; margin-bottom: 20px;">📭 No Tasks Yet</h2>
-                <p style="font-size: 1.1em; opacity: 0.9;">Start by creating your first task group!</p>
+            <div class="empty-state-page">
+                <h2>📭 No Tasks Yet</h2>
+                <p>Start by creating your first task group!</p>
             </div>
         }
 
@@ -234,62 +234,34 @@
 
         // Handle add task with AJAX
         document.querySelectorAll('.add-task-form').forEach(form => {
+            const titleInput = form.querySelector('input[name="title"]');
+            if (titleInput) {
+                titleInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        form.requestSubmit();
+                    }
+                });
+            }
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
+
                 const formData = new FormData(this);
-                const todoId = this.dataset.todoId;
                 const title = this.querySelector('input[name="title"]').value;
-                const description = this.querySelector('textarea[name="description"]').value;
-                
+
                 if (!title.trim()) return;
-                
+
                 try {
                     const response = await fetch(this.action, {
                         method: 'POST',
                         body: formData
                     });
-                    
+
                     if (response.ok) {
-                        // Clear form inputs
+                        // Clear form inputs and refresh to sync IDs/state from server
                         this.querySelector('input[name="title"]').value = '';
                         this.querySelector('textarea[name="description"]').value = '';
-                        
-                        // Create new task HTML and insert it
-                        const tasksContainer = this.closest('.todo-group').querySelector('.tasks-container');
-                        const newTaskHTML = `
-                            <div class="task-item" style="animation: slideIn 0.3s ease-out;">
-                                <form method="post" action="/Todos/ToggleStatus" style="display: inline;">
-                                    <input type="hidden" name="id" value="${todoId}" />
-                                    <input type="hidden" name="taskId" value="999" />
-                                    <input type="checkbox" class="task-checkbox toggle-checkbox" />
-                                </form>
-                                <div class="task-content">
-                                    <div class="task-title">${title}</div>
-                                    ${description ? `<div class="task-description">${description}</div>` : ''}
-                                    <div class="task-date">📅 ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                                </div>
-                                <div class="task-status-badge pending">
-                                    ⏳ Pending
-                                </div>
-                                <div class="task-actions">
-                                    <form method="post" action="/Todos/DeleteTask" style="display: inline;">
-                                        <input type="hidden" name="id" value="${todoId}" />
-                                        <input type="hidden" name="taskId" value="999" />
-                                        <button type="button" class="delete-btn delete-task-btn" title="Delete task">🗑️</button>
-                                    </form>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Insert at the beginning of tasks container
-                        tasksContainer.insertAdjacentHTML('afterbegin', newTaskHTML);
-                        
-                        // Re-attach event listeners to new elements
-                        attachTaskEventListeners();
-
-                        // Keep stats/progress in sync
-                        updateGroupStatsAndProgress(this.closest('.todo-group'));
+                        window.location.reload();
                     }
                 } catch (error) {
                     console.error('Error adding task:', error);

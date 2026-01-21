@@ -62,10 +62,8 @@ body {
 
 /* Top bar */
 .topbar {
-  position: sticky;
-  top: 0;
+  position: static;
   z-index: 200;
-  backdrop-filter: blur(10px);
 }
 
 .topbar-inner {
@@ -510,5 +508,23 @@ body {
 
 .site-footer-muted {
   opacity: 0.85;
+}
+
+/* Page-level empty state (no groups yet) */
+.empty-state-page {
+  text-align: center;
+  padding: 80px 20px;
+  color: #2f3e46ff; /* darker palette shade */
+}
+
+.empty-state-page h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  color: #2f3e46ff;
+}
+
+.empty-state-page p {
+  font-size: 1.1em;
+  opacity: 0.9;
 }
 
