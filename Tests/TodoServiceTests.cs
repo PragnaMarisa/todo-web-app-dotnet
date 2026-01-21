@@ -3,12 +3,20 @@ using System.Linq;
 using Xunit;
 using todo_web_app_dotnet.Data;
 using todo_web_app_dotnet.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace todo_web_app_dotnet.Tests
 {
     public class TodoServiceTests
     {
-        private ITodoService CreateService() => new TodoService();
+        private ITodoService CreateService()
+        {
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new MyDbContext(options);
+            return new TodoService(context);
+        }
 
         [Fact]
         public void GetAllTodos_StartsEmpty()

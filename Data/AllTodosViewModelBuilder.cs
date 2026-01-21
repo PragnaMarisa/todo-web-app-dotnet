@@ -17,7 +17,7 @@ namespace todo_web_app_dotnet.Data
             return new AllTodosViewModel
             {
                 TotalGroups = todos.Count,
-                TotalTasks = todos.Sum(t => t.Tasks?.Length ?? 0),
+                TotalTasks = todos.Sum(t => t.Tasks?.Count ?? 0),
                 CompletedTasks = todos.Sum(t => t.Tasks?.Count(x => x.IsCompleted) ?? 0),
                 Groups = todos.Select(todo =>
                 {

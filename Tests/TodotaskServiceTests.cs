@@ -3,16 +3,21 @@ using System.Linq;
 using Xunit;
 using todo_web_app_dotnet.Data;
 using todo_web_app_dotnet.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace todo_web_app_dotnet.Tests
 {
     public class TodotaskServiceTests
     {
         [Fact]
-        public void AddTask_CreatesTaskWithValidTodoId()
+        public void AddTask_AddsTaskToTodo()
         {
-            var todoService = new TodoService();
-            var taskService = new TodotaskService(todoService);
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new MyDbContext(options);
+            var todoService = new TodoService(context);
+            var taskService = new TodotaskService(context);
 
             var todo = new Todo { Title = "Group" };
             todoService.AddTodo(todo);
@@ -25,15 +30,19 @@ namespace todo_web_app_dotnet.Tests
             Assert.NotNull(afterAdd);
             Assert.NotNull(afterAdd.Tasks);
             Assert.Single(afterAdd.Tasks);
-            Assert.Equal("Task1", afterAdd.Tasks![0].Title);
-            Assert.False(afterAdd.Tasks![0].IsCompleted);
+            Assert.Equal("Task1", afterAdd.Tasks!.First().Title);
+            Assert.False(afterAdd.Tasks!.First().IsCompleted);
         }
 
         [Fact]
         public void ToggleTaskStatus_TogglesBetweenCompleteAndIncomplete()
         {
-            var todoService = new TodoService();
-            var taskService = new TodotaskService(todoService);
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new MyDbContext(options);
+            var todoService = new TodoService(context);
+            var taskService = new TodotaskService(context);
 
             var todo = new Todo { Title = "Group" };
             todoService.AddTodo(todo);
@@ -41,20 +50,24 @@ namespace todo_web_app_dotnet.Tests
 
             var newTask = new Todotask { Title = "Task1" };
             taskService.AddTask(addedTodo.Id, newTask);
-            var taskId = todoService.GetTodoById(addedTodo.Id)!.Tasks![0].Id;
+            var taskId = todoService.GetTodoById(addedTodo.Id)!.Tasks!.First().Id;
 
             taskService.ToggleTaskStatus(addedTodo.Id, taskId);
-            Assert.True(todoService.GetTodoById(addedTodo.Id)!.Tasks![0].IsCompleted);
+            Assert.True(todoService.GetTodoById(addedTodo.Id)!.Tasks!.First().IsCompleted);
 
             taskService.ToggleTaskStatus(addedTodo.Id, taskId);
-            Assert.False(todoService.GetTodoById(addedTodo.Id)!.Tasks![0].IsCompleted);
+            Assert.False(todoService.GetTodoById(addedTodo.Id)!.Tasks!.First().IsCompleted);
         }
 
         [Fact]
         public void DeleteTask_RemovesTaskFromTodo()
         {
-            var todoService = new TodoService();
-            var taskService = new TodotaskService(todoService);
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new MyDbContext(options);
+            var todoService = new TodoService(context);
+            var taskService = new TodotaskService(context);
 
             var todo = new Todo { Title = "Group" };
             todoService.AddTodo(todo);
@@ -62,7 +75,7 @@ namespace todo_web_app_dotnet.Tests
 
             var newTask = new Todotask { Title = "Task1" };
             taskService.AddTask(addedTodo.Id, newTask);
-            var taskId = todoService.GetTodoById(addedTodo.Id)!.Tasks![0].Id;
+            var taskId = todoService.GetTodoById(addedTodo.Id)!.Tasks!.First().Id;
 
             taskService.DeleteTask(addedTodo.Id, taskId);
             Assert.Empty(todoService.GetTodoById(addedTodo.Id)!.Tasks!);
@@ -71,8 +84,12 @@ namespace todo_web_app_dotnet.Tests
         [Fact]
         public void AddTask_DoesNothingIfTodoDoesNotExist()
         {
-            var todoService = new TodoService();
-            var taskService = new TodotaskService(todoService);
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var context = new MyDbContext(options);
+            var todoService = new TodoService(context);
+            var taskService = new TodotaskService(context);
 
             var task = new Todotask { Title = "Orphan" };
             taskService.AddTask(999, task);

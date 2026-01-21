@@ -1,4 +1,5 @@
 using todo_web_app_dotnet.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace todo_web_app_dotnet.Data
 {
@@ -12,31 +13,40 @@ namespace todo_web_app_dotnet.Data
 
     public class TodoService : ITodoService
     {
-        private  List<Todo> _todos = new List<Todo>();
+        private readonly MyDbContext _context;
+
+        public TodoService(MyDbContext context)
+        {
+            _context = context;
+        }
 
         public List<Todo> GetAllTodos()
         {
-            return _todos;
+            return _context.Todos
+                .Include(t => t.Tasks)
+                .ToList();
         }
 
         public Todo? GetTodoById(int id)
         {
-            return _todos.FirstOrDefault(t => t.Id == id);
+            return _context.Todos
+                .Include(t => t.Tasks)
+                .FirstOrDefault(t => t.Id == id);
         }
 
         public void AddTodo(Todo todo)
         {
-            todo.Id = _todos.Any() ? _todos.Max(t => t.Id) + 1 : 1;
-            todo.Tasks = todo.Tasks ?? new Todotask[] { };
-            _todos.Add(todo);
+            _context.Todos.Add(todo);
+            _context.SaveChanges();
         }
 
         public void DeleteTodo(int id)
         {
-            var todo = _todos.FirstOrDefault(t => t.Id == id);
+            var todo = _context.Todos.Find(id);
             if (todo != null)
             {
-                _todos.Remove(todo);
+                _context.Todos.Remove(todo);
+                _context.SaveChanges();
             }
         }
 

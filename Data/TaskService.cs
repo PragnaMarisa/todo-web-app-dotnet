@@ -11,51 +11,39 @@ namespace todo_web_app_dotnet.Data
 
     public class TodotaskService : ITodotaskService
     {
-        private readonly ITodoService _todoService;
+        private readonly MyDbContext _context;
 
-        public TodotaskService(ITodoService todoService)
+        public TodotaskService(MyDbContext context)
         {
-            _todoService = todoService;
+            _context = context;
         }
 
         public void ToggleTaskStatus(int todoId, int taskId)
         {
-            var todo = _todoService.GetTodoById(todoId);
-            if (todo?.Tasks != null)
+            var task = _context.Todotasks.FirstOrDefault(t => t.Id == taskId && t.TodoId == todoId);
+            if (task != null)
             {
-                var task = todo.Tasks.FirstOrDefault(t => t.Id == taskId);
-                if (task != null)
-                {
-                    task.IsCompleted = !task.IsCompleted;
-                }
+                task.IsCompleted = !task.IsCompleted;
+                _context.SaveChanges();
             }
         }
 
         public void DeleteTask(int todoId, int taskId)
         {
-            var todo = _todoService.GetTodoById(todoId);
-            if (todo?.Tasks != null)
+            var task = _context.Todotasks.FirstOrDefault(t => t.Id == taskId && t.TodoId == todoId);
+            if (task != null)
             {
-                var taskToDelete = todo.Tasks.FirstOrDefault(t => t.Id == taskId);
-                if (taskToDelete != null)
-                {
-                    var taskList = todo.Tasks.ToList();
-                    taskList.Remove(taskToDelete);
-                    todo.Tasks = taskList.ToArray();
-                }
+                _context.Todotasks.Remove(task);
+                _context.SaveChanges();
             }
         }
 
         public void AddTask(int todoId, Todotask task)
         {
-            var todo = _todoService.GetTodoById(todoId);
-            if (todo?.Tasks != null)
-            {
-                task.Id = todo.Tasks.Length > 0 ? todo.Tasks.Max(t => t.Id) + 1 : 1;
-                var taskList = todo.Tasks.ToList();
-                taskList.Add(task);
-                todo.Tasks = taskList.ToArray();
-            }
+            task.TodoId = todoId;
+            task.CreatedDate = DateTime.UtcNow;
+            _context.Todotasks.Add(task);
+            _context.SaveChanges();
         }
     }
 }
