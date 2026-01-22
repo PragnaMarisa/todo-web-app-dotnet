@@ -19,7 +19,7 @@ namespace todo_web_app_dotnet.Data
 
             modelBuilder.Entity<Todo>()
                 .HasMany(t => t.Tasks)
-                .WithOne(tt => tt.Todo)
+                .WithOne()
                 .HasForeignKey(tt => tt.TodoId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

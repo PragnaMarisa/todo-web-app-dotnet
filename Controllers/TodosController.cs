@@ -35,9 +35,9 @@ namespace todo_web_app_dotnet.Controllers
         [HttpPost]
         public IActionResult AddTask(Todotask task, int todoId)
         {
-            if (string.IsNullOrEmpty(task.Title))
+            if (string.IsNullOrWhiteSpace(task.Title))
             {
-                ModelState.AddModelError("Title", "Title is required");
+                TempData["ErrorMessage"] = "Title should not be empty";
                 return RedirectToAction("AllTodos");
             }
             task.CreatedDate = DateTime.UtcNow;
@@ -47,9 +47,9 @@ namespace todo_web_app_dotnet.Controllers
         [HttpPost]
         public IActionResult AddTodo(Todo todo)
         {
-            if (string.IsNullOrEmpty(todo.Title))
+            if (string.IsNullOrWhiteSpace(todo.Title))
             {
-                ModelState.AddModelError("Title", "Title is required");
+                TempData["ErrorMessage"] = "Title should not be empty";
                 return RedirectToAction("AllTodos");
             }
 

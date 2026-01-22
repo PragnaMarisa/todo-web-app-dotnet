@@ -30,15 +30,24 @@
             <p>Track, organize, and conquer your goals with style</p>
         </div>
 
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <script>
+                window.addEventListener('DOMContentLoaded', () => {
+                    showNotification('@TempData["ErrorMessage"]');
+                });
+            </script>
+        }
+
         <!-- Add New Todo Section -->
         <div class="add-todo-section">
             <h2>➕ Create New Task Group</h2>
-            <form method="post" action="@Url.Action("AddTodo", "Todos")">
+            <form method="post" action="@Url.Action("AddTodo", "Todos")" id="addTodoForm">
                 <div class="form-row">
                     <div>
                         <div class="form-group">
                             <label for="todoTitle">Group Title <span style="color: #d32f2f;">*</span></label>
-                            <input type="text" id="todoTitle" name="title" placeholder="e.g., Project Setup, Backend Development..." required />
+                            <input type="text" id="todoTitle" name="title" placeholder="e.g., Project Setup, Backend Development..." />
                         </div>
                         <div class="form-group">
                             <label for="todoDescription">Description</label>
@@ -94,7 +103,7 @@
                             <h3>✨ Add New Task</h3>
                             <form method="post" action="@Url.Action("AddTask", "Todos")" class="add-task-form" data-todo-id="@todoId">
                                 <input type="hidden" name="todoId" value="@todoId" />
-                                <input type="text" name="title" placeholder="💡 Task title..." required enterkeyhint="go" />
+                                <input type="text" name="title" placeholder="💡 Task title..." enterkeyhint="go" />
                                 <button type="submit" class="add-task-btn">➕ Add</button>
                                 <textarea name="description" placeholder="📝 Task description (optional)..." style="grid-column: 1 / -1;"></textarea>
                             </form>
@@ -187,6 +196,19 @@
     </div>
 
     <script>
+        // Add Todo form validation
+        document.getElementById('addTodoForm')?.addEventListener('submit', function(e) {
+            const titleInput = this.querySelector('#todoTitle');
+            const title = titleInput.value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                showNotification('Title should not be empty');
+                titleInput.focus();
+                return false;
+            }
+        });
+
         function updateGroupStatsAndProgress(todoGroupEl) {
             if (!todoGroupEl) return;
 
@@ -247,9 +269,13 @@
                 e.preventDefault();
 
                 const formData = new FormData(this);
-                const title = this.querySelector('input[name="title"]').value;
+                const title = this.querySelector('input[name="title"]').value.trim();
 
-                if (!title.trim()) return;
+                if (!title) {
+                    showNotification('Title should not be empty');
+                    this.querySelector('input[name="title"]').focus();
+                    return;
+                }
 
                 try {
                     const response = await fetch(this.action, {
@@ -265,7 +291,7 @@
                     }
                 } catch (error) {
                     console.error('Error adding task:', error);
-                    alert('Error adding task. Please try again.');
+                    showNotification('Error adding task. Please try again.');
                 }
             });
         });
@@ -381,7 +407,7 @@
                         }, 300);
                         
                         // Show success notification
-                        showNotification('Task deleted successfully', e.clientX, e.clientY);
+                        showNotification('Task deleted successfully');
                     }
                 } catch (error) {
                     console.error('Error deleting task:', error);
@@ -436,7 +462,7 @@
                             }
                         }, 300);
 
-                        showNotification('Group deleted successfully', e.clientX, e.clientY);
+                        showNotification('Group deleted successfully');
                     }
                 } catch (error) {
                     console.error('Error deleting group:', error);
@@ -489,7 +515,7 @@
         }
 
         // Show notification popup
-        function showNotification(message, x, y) {
+        function showNotification(message) {
             const notification = document.createElement('div');
             notification.className = 'delete-notification';
             notification.textContent = message;

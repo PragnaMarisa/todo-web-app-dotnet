@@ -58,6 +58,10 @@ namespace todo_web_app_dotnet.Tests
                 taskService.Object,
                 Mock.Of<IAllTodosViewModelBuilder>()
             );
+            controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>()
+            );
 
             var result = controller.AddTask(new Todotask { Title = "" }, 1) as RedirectToActionResult;
 
@@ -91,6 +95,10 @@ namespace todo_web_app_dotnet.Tests
                 todoService.Object,
                 Mock.Of<ITodotaskService>(),
                 Mock.Of<IAllTodosViewModelBuilder>()
+            );
+            controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>()
             );
 
             var result = controller.AddTodo(new Todo { Title = "" }) as RedirectToActionResult;

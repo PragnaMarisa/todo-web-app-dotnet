@@ -1,0 +1,1 @@
+--> we can user specific table if possible and is within the limit of free tier for my neon psql database.
